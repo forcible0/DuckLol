@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, Menu } = require('electron');
 const path = require('path');
 
 let mainWindow;
@@ -17,16 +17,19 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js')
     },
     show: false,
-    backgroundColor: '#0b0e14'
+    backgroundColor: '#0b0e14',
+    autoHideMenuBar: true,  // ← Menü çubuğunu gizle (Alt ile gösterilebilir)
+    frame: true             // ← Pencere çerçevesi kalsın (kapat/büyült butonları)
   });
+
+  // Tamamen menü çubuğunu kaldır (Alt bile açamaz)
+  Menu.setApplicationMenu(null);
 
   mainWindow.loadFile('index.html');
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
   });
-
-  // mainWindow.webContents.openDevTools(); // Debug için
 }
 
 app.whenReady().then(() => {
