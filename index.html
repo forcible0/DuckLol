@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DuckLoL - Champion Guide & Draft Assistant</title>
+<style>
+:root{--bg:#0b0e14;--bg2:#11151f;--card:#161b27;--hover:#1e2535;--green:#00d4aa;--blue:#3b82f6;--red:#ef4444;--orange:#f59e0b;--txt:#e2e8f0;--txt2:#94a3b8;--muted:#64748b;--border:#1e293b;--win:#22c55e;--lose:#ef4444}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+.header{background:linear-gradient(135deg,var(--bg2) 0%,#0f172a 100%);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px;cursor:pointer}
+.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff}
+.logo-text{font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-sub{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.nav-tabs{display:flex;gap:6px}
+.nav-tab{padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;color:var(--txt2);transition:all .2s;border:none;background:transparent}
+.nav-tab:hover{color:var(--txt);background:var(--hover)}
+.nav-tab.active{color:var(--green);background:rgba(0,212,170,0.1)}
+.search-container{padding:16px 20px;max-width:500px;margin:0 auto}
+.search-wrapper{position:relative}
+.search-box{width:100%;padding:12px 16px 12px 40px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--txt);font-size:14px;outline:none;transition:all .2s}
+.search-box:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(0,212,170,0.1)}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px}
+.role-filters{display:flex;gap:6px;justify-content:center;padding:0 20px 12px;flex-wrap:wrap}
+.role-btn{padding:6px 14px;border-radius:16px;border:1px solid var(--border);background:var(--card);color:var(--txt2);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.role-btn:hover{border-color:var(--green);color:var(--green)}
+.role-btn.active{background:var(--green);color:#000;border-color:var(--green)}
+.champion-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;padding:0 20px 30px;max-width:1200px;margin:0 auto}
+.champion-card{background:var(--card);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .2s;border:1px solid var(--border);text-align:center}
+.champion-card:hover{transform:translateY(-3px);border-color:var(--green);box-shadow:0 6px 20px rgba(0,212,170,0.12)}
+.champion-card img{width:100%;aspect-ratio:1;object-fit:cover}
+.champion-card .name{padding:6px 2px;font-size:11px;font-weight:600;color:var(--txt)}
+.detail-view{display:none;padding:0 20px 30px;max-width:1000px;margin:0 auto}
+.detail-view.active{display:block;animation:fadeIn .3s ease}
+.detail-header{display:flex;gap:20px;align-items:flex-start;padding:20px 0;border-bottom:1px solid var(--border)}
+.detail-header img{width:100px;height:100px;border-radius:12px;border:2px solid var(--green)}
+.detail-info h1{font-size:28px;font-weight:800;background:linear-gradient(135deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.role-tag{display:inline-block;padding:3px 12px;border-radius:5px;background:rgba(59,130,246,0.15);color:var(--blue);font-size:11px;font-weight:700;margin-top:6px;margin-right:4px;text-transform:uppercase;letter-spacing:.5px}
+.tag-line{color:var(--muted);font-size:13px;margin-top:4px}
+.back-btn{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--txt2);cursor:pointer;font-weight:600;transition:all .2s;margin-bottom:12px;font-size:13px}
+.back-btn:hover{border-color:var(--green);color:var(--green)}
+.build-section{margin-top:20px}
+.section-title{font-size:16px;font-weight:700;color:var(--txt);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.section-title::before{content:'';width:3px;height:16px;background:linear-gradient(180deg,var(--green),var(--blue));border-radius:2px}
+.item-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.item-box{width:48px;height:48px;border-radius:8px;border:2px solid var(--border);overflow:hidden;position:relative;cursor:pointer;transition:all .2s}
+.item-box:hover{border-color:var(--green);transform:scale(1.08)}
+.item-box img{width:100%;height:100%;object-fit:cover}
+.item-gold{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.8);font-size:8px;text-align:center;color:#fbbf24;font-weight:700;padding:1px 0}
+.item-label{font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.build-arrow{color:var(--muted);font-size:12px}
+.rune-section{background:var(--card);border-radius:10px;padding:16px;border:1px solid var(--border);margin-top:12px}
+.rune-tree-header{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.rune-tree-header img{width:28px;height:28px;border-radius:50%}
+.rune-tree-header span{font-size:14px;font-weight:700}
+.rune-row{display:flex;gap:10px;margin-bottom:10px;align-items:center}
+.rune-slot{width:38px;height:38px;border-radius:50%;border:2px solid var(--border);overflow:hidden;position:relative}
+.rune-slot.active{border-color:var(--green);box-shadow:0 0 6px rgba(0,212,170,0.25)}
+.rune-slot.keystone{width:48px;height:48px;border-color:var(--orange)}
+.rune-slot img{width:100%;height:100%;object-fit:cover}
+.rune-divider{width:100%;height:1px;background:var(--border);margin:10px 0}
+.skill-table{background:var(--card);border-radius:10px;border:1px solid var(--border);overflow:hidden;margin-top:12px}
+.skill-row{display:flex;border-bottom:1px solid var(--border)}
+.skill-row:last-child{border-bottom:none}
+.skill-cell{width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border-right:1px solid var(--border)}
+.skill-cell.header{width:42px;background:var(--hover);color:var(--green)}
+.skill-cell.filled{background:rgba(0,212,170,0.12);color:var(--green)}
+.skill-cell.ultimate{background:rgba(245,158,11,0.12);color:var(--orange)}
+.counter-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+.counter-card{background:var(--card);border-radius:10px;border:1px solid var(--border);overflow:hidden}
+.counter-header{padding:10px 14px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+.counter-header.weak{background:rgba(239,68,68,0.1);color:var(--lose)}
+.counter-header.strong{background:rgba(34,197,94,0.1);color:var(--win)}
+.counter-header.synergy{background:rgba(59,130,246,0.1);color:var(--blue)}
+.counter-list{padding:6px}
+.counter-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;transition:all .2s;cursor:pointer}
+.counter-item:hover{background:var(--hover)}
+.counter-item img{width:32px;height:32px;border-radius:6px}
+.counter-info{flex:1}
+.counter-name{font-size:12px;font-weight:600}
+.counter-games{font-size:10px;color:var(--muted)}
+.counter-wr{font-size:12px;font-weight:700;padding:3px 8px;border-radius:5px}
+.counter-wr.bad{color:var(--lose);background:rgba(239,68,68,0.1)}
+.counter-wr.good{color:var(--win);background:rgba(34,197,94,0.1)}
+.lobby-view{display:none;padding:0 20px 30px;max-width:1000px;margin:0 auto}
+.lobby-view.active{display:block;animation:fadeIn .3s ease}
+.lobby-title{font-size:24px;font-weight:800;text-align:center;margin:20px 0;background:linear-gradient(135deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.lobby-subtitle{text-align:center;color:var(--muted);margin-bottom:20px;font-size:13px}
+.lobby-container{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.lobby-team{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:16px}
+.lobby-team-title{font-size:14px;font-weight:700;margin-bottom:12px;text-align:center;text-transform:uppercase;letter-spacing:1px}
+.lobby-team-title.enemy{color:var(--lose)}
+.lobby-team-title.ally{color:var(--green)}
+.lobby-slots{display:flex;flex-direction:column;gap:6px}
+.lobby-slot{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg2);border-radius:8px;border:1px dashed var(--border);cursor:pointer;transition:all .2s}
+.lobby-slot:hover{border-color:var(--green)}
+.lobby-slot img{width:36px;height:36px;border-radius:6px}
+.lobby-slot .slot-text{color:var(--muted);font-size:12px}
+.lobby-slot.filled{border-style:solid;border-color:var(--border)}
+.lobby-slot.filled .slot-text{color:var(--txt);font-weight:600}
+.lobby-recommendations{grid-column:1/-1;background:var(--card);border-radius:12px;border:1px solid var(--border);padding:20px;margin-top:6px}
+.rec-title{font-size:16px;font-weight:700;margin-bottom:12px;color:var(--green)}
+.rec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.rec-card{background:var(--bg2);border-radius:10px;padding:14px;border:1px solid var(--border);cursor:pointer;transition:all .2s}
+.rec-card:hover{border-color:var(--green);transform:translateY(-2px)}
+.rec-card-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.rec-card-header img{width:40px;height:40px;border-radius:8px}
+.rec-name{font-size:14px;font-weight:700}
+.rec-role{font-size:10px;color:var(--muted)}
+.rec-score{font-size:18px;font-weight:800;color:var(--green)}
+.rec-reason{font-size:11px;color:var(--txt2);margin-top:3px}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+.modal-overlay.active{display:flex}
+.modal{background:var(--bg2);border-radius:14px;border:1px solid var(--border);width:100%;max-width:550px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column}
+.modal-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-title{font-size:16px;font-weight:700}
+.modal-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer}
+.modal-close:hover{color:var(--txt)}
+.modal-search{padding:10px 18px;border-bottom:1px solid var(--border)}
+.modal-search input{width:100%;padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--txt);font-size:13px;outline:none}
+.modal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(65px,1fr));gap:6px;padding:14px;overflow-y:auto}
+.modal-grid .champion-card{border-radius:6px}
+.modal-grid .champion-card .name{font-size:9px;padding:3px 1px}
+.spell-row{display:flex;gap:10px;margin-top:12px}
+.spell-box{display:flex;align-items:center;gap:6px;background:var(--card);padding:8px 14px;border-radius:8px;border:1px solid var(--border)}
+.spell-box img{width:32px;height:32px;border-radius:6px}
+.spell-name{font-size:12px;font-weight:600}
+.loading{text-align:center;padding:40px;color:var(--muted)}
+.loading-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:768px){.champion-grid{grid-template-columns:repeat(auto-fill,minmax(75px,1fr))}.counter-grid{grid-template-columns:1fr}.lobby-container{grid-template-columns:1fr}.detail-header{flex-direction:column;align-items:center;text-align:center}}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo" onclick="showHome()">
+    <div class="logo-icon">D</div>
+    <div><div class="logo-text">DuckLoL</div><div class="logo-sub">Champion Guide & Draft Assistant</div></div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showHome()" id="tab-home">Champions</button>
+    <button class="nav-tab" onclick="showLobby()" id="tab-lobby">Draft Assistant</button>
+  </div>
+</div>
+
+<div id="home-view">
+  <div class="search-container">
+    <div class="search-wrapper">
+      <span class="search-icon">🔍</span>
+      <input type="text" class="search-box" id="search-input" placeholder="Search champions..." oninput="filterChampions()">
+    </div>
+  </div>
+  <div class="role-filters" id="role-filters">
+    <button class="role-btn active" onclick="filterByRole('ALL')">All</button>
+    <button class="role-btn" onclick="filterByRole('TOP')">Top</button>
+    <button class="role-btn" onclick="filterByRole('JUNGLE')">Jungle</button>
+    <button class="role-btn" onclick="filterByRole('MID')">Mid</button>
+    <button class="role-btn" onclick="filterByRole('ADC')">ADC</button>
+    <button class="role-btn" onclick="filterByRole('SUPPORT')">Support</button>
+  </div>
+  <div id="loading-home" class="loading"><div class="loading-spinner"></div>Loading champions...</div>
+  <div class="champion-grid" id="champion-grid" style="display:none"></div>
+</div>
+
+<div id="detail-view" class="detail-view">
+  <button class="back-btn" onclick="showHome()">← Back to Champions</button>
+  <div id="detail-content"></div>
+</div>
+
+<div id="lobby-view" class="lobby-view">
+  <div class="lobby-title">🎯 Draft Assistant</div>
+  <div class="lobby-subtitle">Select enemy champions to get counter picks and build recommendations</div>
+  <div class="lobby-container">
+    <div class="lobby-team">
+      <div class="lobby-team-title enemy">⚔️ Enemy Team</div>
+      <div class="lobby-slots" id="enemy-slots"></div>
+    </div>
+    <div class="lobby-team">
+      <div class="lobby-team-title ally">🛡️ Your Team</div>
+      <div class="lobby-slots" id="ally-slots"></div>
+    </div>
+    <div class="lobby-recommendations" id="lobby-recommendations" style="display:none">
+      <div class="rec-title">🎯 Recommended Picks</div>
+      <div class="rec-grid" id="rec-grid"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Select Champion</span><button class="modal-close" onclick="closeModal()">&times;</button></div>
+    <div class="modal-search"><input type="text" id="modal-search" placeholder="Search..." oninput="filterModalChampions()"></div>
+    <div class="modal-grid" id="modal-grid"></div>
+  </div>
+</div>
+
+<script>
+
+let DATA = null;
+let currentRole = 'ALL';
+let searchQuery = '';
+let enemyTeam = [null,null,null,null,null];
+let allyTeam = [null,null,null,null,null];
+let currentSlot = null;
+let currentTeam = null;
+
+async function loadData() {
+  try {
+    const res = await fetch('data.json');
+    DATA = await res.json();
+    document.getElementById('loading-home').style.display = 'none';
+    document.getElementById('champion-grid').style.display = 'grid';
+    renderChampionGrid();
+    initLobby();
+  } catch(e) {
+    document.getElementById('loading-home').innerHTML = 'Error loading data. Please refresh.';
+  }
+}
+
+function getChampions() {
+  return Object.values(DATA.champions);
+}
+
+function renderChampionGrid() {
+  const grid = document.getElementById('champion-grid');
+  let champs = getChampions();
+  if (currentRole !== 'ALL') champs = champs.filter(c => c.role === currentRole);
+  if (searchQuery) champs = champs.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  champs.sort((a,b) => a.name.localeCompare(b.name));
+  grid.innerHTML = champs.map(c => `
+    <div class="champion-card" onclick="showDetail('${c.id}')">
+      <img src="${c.image}" alt="${c.name}" loading="lazy">
+      <div class="name">${c.name}</div>
+    </div>
+  `).join('');
+}
+
+function filterChampions() {
+  searchQuery = document.getElementById('search-input').value;
+  renderChampionGrid();
+}
+
+function filterByRole(role) {
+  currentRole = role;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderChampionGrid();
+}
+
+function showHome() {
+  document.getElementById('home-view').style.display = 'block';
+  document.getElementById('detail-view').classList.remove('active');
+  document.getElementById('lobby-view').classList.remove('active');
+  document.getElementById('tab-home').classList.add('active');
+  document.getElementById('tab-lobby').classList.remove('active');
+}
+
+function showDetail(champId) {
+  const c = DATA.champions[champId];
+  if (!c) return;
+  const b = c.build;
+  const r = b.runes;
+
+  const itemBox = (id) => {
+    const it = DATA.items[id];
+    return it ? `<div class="item-box" title="${it.name}"><img src="${it.image}" alt="${it.name}"><div class="item-gold">${it.gold}</div></div>` : '';
+  };
+
+  const runeSlot = (id, isKeystone) => {
+    const ru = DATA.runes[id];
+    return ru ? `<div class="rune-slot ${isKeystone?'keystone active':'active'}"><img src="${ru.icon}" title="${ru.name}"></div>` : '';
+  };
+
+  const spellBox = (key) => {
+    const sp = DATA.spells[key];
+    return sp ? `<div class="spell-box"><img src="${sp.image}" alt="${sp.name}"><span class="spell-name">${sp.name}</span></div>` : '';
+  };
+
+  // Skill order table
+  let skillHTML = '<div class="skill-table">';
+  ['Q','W','E','R'].forEach(skill => {
+    skillHTML += `<div class="skill-row"><div class="skill-cell header">${skill}</div>`;
+    for (let i=0;i<18;i++) {
+      const val = b.skillOrder[i];
+      const cls = val===skill ? (skill==='R'?'ultimate':'filled') : '';
+      skillHTML += `<div class="skill-cell ${cls}">${cls?i+1:''}</div>`;
+    }
+    skillHTML += '</div>';
+  });
+  skillHTML += '</div>';
+
+  // Counter cards
+  const counterCard = (title, items, type) => `
+    <div class="counter-card">
+      <div class="counter-header ${type}">${title}</div>
+      <div class="counter-list">
+        ${items.map(x => {
+          const cc = DATA.champions[x.champion];
+          return cc ? `<div class="counter-item" onclick="showDetail('${x.champion}')">
+            <img src="${cc.image}" alt="${cc.name}">
+            <div class="counter-info"><div class="counter-name">${cc.name}</div><div class="counter-games">${x.games.toLocaleString()} games</div></div>
+            <div class="counter-wr ${type}">${x.winRate}%</div>
+          </div>` : '';
+        }).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('detail-content').innerHTML = `
+    <div class="detail-header">
+      <img src="${c.loading}" alt="${c.name}">
+      <div class="detail-info">
+        <h1>${c.name}</h1>
+        <div class="tag-line">${c.title}</div>
+        <div style="margin-top:8px">
+          <span class="role-tag">${b.role}</span>
+          ${c.tags.map(t => `<span class="role-tag" style="background:rgba(0,212,170,0.1);color:var(--green)">${t}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="build-section">
+      <div class="section-title">⚔️ Summoner Spells</div>
+      <div class="spell-row">${b.summonerSpells.map(spellBox).join('')}</div>
+    </div>
+
+    <div class="build-section">
+      <div class="section-title">📦 Item Build</div>
+      <div class="item-label">Starter</div>
+      <div class="item-row">${b.starter ? itemBox(b.starter) : '<span style="color:var(--muted);font-size:12px">No starter item</span>'}</div>
+      <div class="item-label">Core Items</div>
+      <div class="item-row">${b.coreItems.map(itemBox).join('')}</div>
+      <div class="item-label">Build Path</div>
+      <div class="item-row build-path">${b.buildPath.map((id,i) => itemBox(id) + (i<b.buildPath.length-1?'<span class="build-arrow">→</span>':'')).join('')}</div>
+    </div>
+
+    <div class="build-section">
+      <div class="section-title">🔮 Runes</div>
+      <div class="rune-section">
+        <div class="rune-tree-header"><span style="color:var(--orange)">★</span><span>${r.primary} - ${DATA.runes[r.keystone]?.name || 'Keystone'}</span></div>
+        <div class="rune-row">${runeSlot(r.keystone, true)}</div>
+        <div class="rune-row">${r.primaryRunes.map(id => runeSlot(id, false)).join('')}</div>
+        <div class="rune-divider"></div>
+        <div class="rune-tree-header"><span style="color:var(--blue)">◆</span><span>${r.secondary}</span></div>
+        <div class="rune-row">${r.secondaryRunes.map(id => runeSlot(id, false)).join('')}</div>
+        <div class="rune-divider"></div>
+        <div class="rune-row">${r.stats.map(id => runeSlot(id, false)).join('')}</div>
+      </div>
+    </div>
+
+    <div class="build-section">
+      <div class="section-title">📈 Skill Order</div>
+      ${skillHTML}
+    </div>
+
+    <div class="build-section">
+      <div class="section-title">🎯 Matchups</div>
+      <div class="counter-grid">
+        ${counterCard('Weak Against', c.counters.weakAgainst, 'weak')}
+        ${counterCard('Strong Against', c.counters.strongAgainst, 'strong')}
+        ${counterCard('Good Synergy', c.counters.goodSynergy, 'synergy')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('home-view').style.display = 'none';
+  document.getElementById('lobby-view').classList.remove('active');
+  document.getElementById('detail-view').classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// Lobby functions
+function initLobby() {
+  renderLobbySlots();
+}
+
+function renderLobbySlots() {
+  const renderTeam = (team, prefix) => team.map((champ, idx) => {
+    const c = champ ? DATA.champions[champ] : null;
+    return `<div class="lobby-slot ${c?'filled':''}" onclick="openModal('${prefix}',${idx})">
+      ${c ? `<img src="${c.image}" alt="${c.name}"><span class="slot-text">${c.name}</span>` : `<span class="slot-text">+ Select ${prefix} ${idx+1}</span>`}
+    </div>`;
+  }).join('');
+  document.getElementById('enemy-slots').innerHTML = renderTeam(enemyTeam, 'enemy');
+  document.getElementById('ally-slots').innerHTML = renderTeam(allyTeam, 'ally');
+  calculateRecommendations();
+}
+
+function showLobby() {
+  document.getElementById('home-view').style.display = 'none';
+  document.getElementById('detail-view').classList.remove('active');
+  document.getElementById('lobby-view').classList.add('active');
+  document.getElementById('tab-home').classList.remove('active');
+  document.getElementById('tab-lobby').classList.add('active');
+}
+
+function openModal(team, index) {
+  currentTeam = team;
+  currentSlot = index;
+  document.getElementById('modal-overlay').classList.add('active');
+  document.getElementById('modal-search').value = '';
+  renderModalGrid();
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('active');
+  currentSlot = null;
+  currentTeam = null;
+}
+
+function renderModalGrid() {
+  const q = document.getElementById('modal-search').value.toLowerCase();
+  let champs = getChampions();
+  if (q) champs = champs.filter(c => c.name.toLowerCase().includes(q));
+  champs.sort((a,b) => a.name.localeCompare(b.name));
+  document.getElementById('modal-grid').innerHTML = champs.map(c => `
+    <div class="champion-card" onclick="selectChampion('${c.id}')">
+      <img src="${c.image}" alt="${c.name}">
+      <div class="name">${c.name}</div>
+    </div>
+  `).join('');
+}
+
+function filterModalChampions() {
+  renderModalGrid();
+}
+
+function selectChampion(champId) {
+  if (currentTeam === 'enemy') enemyTeam[currentSlot] = champId;
+  else allyTeam[currentSlot] = champId;
+  closeModal();
+  renderLobbySlots();
+}
+
+function calculateRecommendations() {
+  const enemies = enemyTeam.filter(x => x);
+  const allies = allyTeam.filter(x => x);
+
+  if (enemies.length === 0) {
+    document.getElementById('lobby-recommendations').style.display = 'none';
+    return;
+  }
+
+  // Calculate best counters for each enemy
+  let scores = {};
+  Object.keys(DATA.champions).forEach(cid => {
+    if (enemies.includes(cid) || allies.includes(cid)) return;
+    let score = 50;
+    const c = DATA.champions[cid];
+    enemies.forEach(eid => {
+      const enemy = DATA.champions[eid];
+      const strong = enemy.counters.strongAgainst.find(x => x.champion === cid);
+      const weak = enemy.counters.weakAgainst.find(x => x.champion === cid);
+      if (strong) score += (strong.winRate - 50) * 1.5;
+      if (weak) score -= (50 - weak.winRate) * 1.5;
+    });
+    allies.forEach(aid => {
+      const ally = DATA.champions[aid];
+      const syn = ally.counters.goodSynergy.find(x => x.champion === cid);
+      if (syn) score += (syn.winRate - 50);
+    });
+    scores[cid] = Math.round(score);
+  });
+
+  const sorted = Object.entries(scores).sort((a,b) => b[1]-a[1]).slice(0,10);
+
+  document.getElementById('rec-grid').innerHTML = sorted.map(([cid, score]) => {
+    const c = DATA.champions[cid];
+    let reason = '';
+    enemies.forEach(eid => {
+      const strong = DATA.champions[eid].counters.strongAgainst.find(x => x.champion === cid);
+      if (strong) reason += `Strong vs ${DATA.champions[eid].name} (${strong.winRate}%) `;
+    });
+    return `<div class="rec-card" onclick="showDetail('${cid}')">
+      <div class="rec-card-header">
+        <img src="${c.image}" alt="${c.name}">
+        <div><div class="rec-name">${c.name}</div><div class="rec-role">${c.role}</div></div>
+      </div>
+      <div class="rec-score">${score}/100</div>
+      <div class="rec-reason">${reason || 'Balanced pick'}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('lobby-recommendations').style.display = 'block';
+}
+
+// Close modal on overlay click
+document.getElementById('modal-overlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+});
+
+// Init
+loadData();
+</script>
+</body>
+</html>
